@@ -4,7 +4,7 @@
 # File Created: Tuesday, 2nd February 2021 9:19:12 am
 # Author: Dillon Koch
 # -----
-# Last Modified: Tuesday, 2nd February 2021 1:58:47 pm
+# Last Modified: Tuesday, 2nd February 2021 4:24:06 pm
 # Modified By: Dillon Koch
 # -----
 #
@@ -66,7 +66,7 @@ class Download_Data:
         self._download_list(train_paths, file_type='Train')
         self._download_list(test_paths, file_type='Test')
 
-    def _markups_exist(self, dest_folder):  # Specific Helper
+    def _markups_exist(self, dest_folder):  # Helping Helper  _download_zip
         """
         determines if the markup files have been downloaded already in the destination path
         """
@@ -77,7 +77,11 @@ class Download_Data:
                 return False
         return True
 
-    def _download_zip(self, path_list, file_type='Test'):  # Specific Helper
+    def _download_zip(self, path_list, file_type='Test'):  # Specific Helper  download_markups
+        """
+        given a list of url paths to zip files, this will download the zip, unpack it in its
+        appropriate game folder, then delete the zip
+        """
         for i, path in enumerate(path_list):
             dest_folder = ROOT_PATH + f"/Data/{file_type}/Game{i+1}/"
             dest_path = dest_folder + "markups.zip"
