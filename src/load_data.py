@@ -4,7 +4,7 @@
 # File Created: Tuesday, 19th January 2021 8:16:12 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Sunday, 31st January 2021 10:12:54 am
+# Last Modified: Friday, 5th February 2021 2:32:20 pm
 # Modified By: Dillon Koch
 # -----
 #
@@ -50,15 +50,42 @@ class Load_Data:
         # cap.release()
         return arr
 
-    def run(self, vid_path, max_frames=100):  # Run
+    def load_video_arr_generator(self, cap, frame_count, frame_width, frame_height):
+        pass
+
+    def run(self, vid_path, generator=False, max_frames=100):  # Run
         cap = self.load_cap(vid_path)
         frame_count, frame_width, frame_height = self.cap_info(cap)
         arr = self.load_video_arr(cap, frame_count, frame_width, frame_height, max_frames)
         return arr
 
 
+class Load_Training_Data:
+    def __init__(self):
+        pass
+
+    def load_ball_labels(self):  # Top Level
+        """
+        loads the
+        """
+        pass
+
+    def load_event_labels(self):
+        pass
+
+    def run_ball_detection(self, video_path, labels_path):  # Run
+        """
+        """
+        pass
+
+    def run_event_detection(self, video_path, labels_path):  # Run
+        """
+        """
+        pass
+
+
 if __name__ == '__main__':
     x = Load_Data()
     self = x
-    vid_path = ROOT_PATH + "/Data/Game1/gameplay.mp4"
+    vid_path = ROOT_PATH + "/Data/Test/Game1/gameplay.mp4"
     arr = x.run(vid_path)

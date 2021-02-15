@@ -1,0 +1,16 @@
+OFFICIAL TIMELINE
+----------------------------------------------------------------------------------------------------
+- (Feb 2) download data with download_data.py
+- (Feb 12) PROBLEM SET 2 DUE
+- (Feb 14) train model for event detection with detect_event_model.py
+- (Feb 14) run event model on videos with detect_event.py
+- (Feb 28) train model for ball detection with detect_ball_model.py
+- (Feb 28) run ball model on videos with detect_ball.py
+- (Mar 1) MIDTERM PROGRESS REPORT DUE
+- (Mar 3) PROBLEM SET 3 DUE
+- (Mar 7) use semantic segmentation or edge detection to detect the table in detect_table.py
+- (Mar 10) PROBLEM SET 4 DUE
+- (Mar 14) Fully Clean up the GitHub, make it presentable
+- (Mar 18) FINAL PROJECT DUE
+- combine everything into main.py
+- 

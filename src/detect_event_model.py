@@ -4,7 +4,7 @@
 # File Created: Tuesday, 2nd February 2021 11:11:32 am
 # Author: Dillon Koch
 # -----
-# Last Modified: Tuesday, 2nd February 2021 11:12:16 am
+# Last Modified: Friday, 5th February 2021 1:53:04 pm
 # Modified By: Dillon Koch
 # -----
 #
@@ -24,6 +24,9 @@ if ROOT_PATH not in sys.path:
 
 class Detect_Event_Model:
     def __init__(self):
+        pass
+
+    def create_model(self):
         pass
 
     def run(self):  # Run

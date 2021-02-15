@@ -4,7 +4,7 @@
 # File Created: Tuesday, 2nd February 2021 11:19:56 am
 # Author: Dillon Koch
 # -----
-# Last Modified: Tuesday, 2nd February 2021 1:12:53 pm
+# Last Modified: Friday, 5th February 2021 8:47:33 am
 # Modified By: Dillon Koch
 # -----
 #
@@ -33,42 +33,57 @@ class Main:
         pass
 
     def load_video(self, video_path):  # Top Level
-        # just load the video as needed
+        """
+        just load the video as needed
+        """
         pass
 
-    def analyze_video(self, vid):  # Top Level
-        # loop through 9 frame increments to look for the table, ball, events
-        # when an event is detected, run record_bounce.py to get the pixel location
-        table = None
-        bounce_stacks = None
-        bounce_locations = None
-        bounce_frames = None
-        for bounce_frame in bounce_frames:
-            table_dims = self.get_table_dims(bounce_frame)
-            new_item = (bounce_frame)
-        video_data = [(bounce_frame, table_dims, bounce_location)]
-        return video_data
+    def detect_events(self, vid):  # Top Level
+        """
+        runs the detect_events model to find bounces in the video
+        """
+        pass
 
-    def analyze_video(self, vid):
-        bounce_stacks = self.bounce_stacks_from_video(vid)
+    def find_bounce_pixels(self, bounce_frame):  # Top Level
+        """
+        given a frame where a bounce was predicted,
+        this finds the pixel where ball meets table
+        """
+        pass
 
-    def create_shot_chart(self, table, bounce_frames, bounce_locations):  # Top Level
+    def find_table_dimensions(self, bounce_frames):  # Top Level
+        """
+        finds the four corners of the table in the given frame
+        """
+        pass
+
+    def compute_chart_bounce_location(self, video_bounce_pixels, table_dimensions):  # Top Level
+        """
+        uses the bounce location and table dimensions to compute the location on the
+        final bird's eye shot chart where the ball bounced
+        """
+        pass
+
+    def create_shot_chart(self, chart_bounce_locations):  # Top Level
+        """
+        creates an image of a ping pong table with dots where bounces occurred
+        """
         # using the pixel locations of bounces, add them all to a trapezoid shot chart,
         # then transform to a rectangle chart
-        trap_chart = self.bounce_locations_to_chart(bounce_locations, table)
-
         # --------- OR --------------
         # using the four corners of the table, solve for the transformation matrix
         # use that transformation matrix to convert pixel locations in the trapezoid to
         # locations in the rectangle shot chart
         # then put a dot on those locations for the first time in the rectangle!
-
         pass
 
     def run(self, video_path):  # Run
         vid = self.load_video(video_path)
-        video_data = self.analyze_video(vid)
-        shot_chart = self.create_shot_chart(video_data)
+        bounce_frames, net_hits = self.detect_events(vid)
+        video_bounce_pixels = self.find_bounce_pixels(bounce_frames)
+        table_dimensions = self.find_table_dimensions(bounce_frames)
+        chart_bounce_locations = self.compute_chart_bounce_locations(bounce_frames, video_bounce_pixels, table_dimensions)
+        shot_chart = self.create_shot_chart(chart_bounce_locations)
         return shot_chart
 
 

@@ -1,0 +1,30 @@
+PING PONG SHOT CHART PROJECT TIMELINE
+----------------------------------------------------------------------------------------------------
+- PROJECT PROPOSAL DUE FRI FEB 6
+	- max 2 pages, almost done
+- 
+- 
+- 
+- MIDTERM PROGRESS REPORT DUE MARCH 1
+	- max 4 pages, using latex template
+	- intro, problem statement, technical approach, intermediate/prelim results
+- 
+- 
+- FINAL PROJECT DUE THU MARCH 18
+	- 6-8 page final report (PDF)
+	- Fully completed GitHub repo
+
+
+----------------------------------------------------------------------------------------------------
+THINGS TO DO
+- download dataset (done)
+- code to load model as necessary for other tasks
+- train model for event detection
+- train model for detecting ball location
+- semantic segmentation/edge detection to find table
+- write main.py to loop through 9 frames of video to:
+	- record points where ball meets table when bounce is detected
+	- project table to a rectangle, return that image
+- 
+- 
+- 
