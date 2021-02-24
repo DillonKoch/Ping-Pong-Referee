@@ -1,145 +1,125 @@
 # ==============================================================================
 # File: detect_ball_model.py
 # Project: src
-# File Created: Tuesday, 2nd February 2021 11:08:57 am
+# File Created: Monday, 15th February 2021 1:11:12 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Monday, 15th February 2021 1:09:58 pm
+# Last Modified: Monday, 15th February 2021 3:45:35 pm
 # Modified By: Dillon Koch
 # -----
+# Collins Aerospace
 #
 # -----
-# Trains a model to detect the ball in a stack of 9 frames of ping pong video
+# creates the model for detecting the ball location in videos
 # ==============================================================================
 
 
-import json
-import os
-import sys
 from os.path import abspath, dirname
-
-import cv2
+import sys
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+
+from torch.nn import Module, Conv2d, BatchNorm2d, ReLU, Linear, Sigmoid, Dropout, MaxPool2d, Dropout2d
+import torch
+from torch.nn.modules.loss import CrossEntropyLoss
+from torch.optim import SGD
 
 ROOT_PATH = dirname(dirname(abspath(__file__)))
 if ROOT_PATH not in sys.path:
     sys.path.append(ROOT_PATH)
 
 
-class Detect_Ball_Model:
-    def __init__(self):
-        self.train_paths = [ROOT_PATH + f"/Data/Train/Game{i+1}/gameplay.mp4" for i in range(5)]
-        self.test_paths = [ROOT_PATH + f"/Data/Test/Game{i+1}/gameplay.mp4" for i in range(7)]
+class Conv_Block(Module):
+    def __init__(self, in_channels, out_channels):
+        super(Conv_Block, self).__init__()
+        self.conv = Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        self.batch_norm = BatchNorm2d(out_channels)
+        self.relu = ReLU()
+        self.maxpool = MaxPool2d(kernel_size=2, stride=2, padding=0)
 
-    def _remove_negative_positions(self, labels):
-        new_labels = {frame: pos for frame, pos in labels.items() if ((pos['x'] != -1) and (pos['y'] != -1))}
-        return new_labels
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.batch_norm(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        return x
 
-    def load_labels(self, game, train=True):  # Top Level
-        """
-        loads the ball_markup.json file for a given video that contains the
-        xy positions of the ball in the given frame
-        """
-        train_test_str = "Train" if train else "Test"
-        path = ROOT_PATH + f"/Data/{train_test_str}/Game{game}/ball_markup.json"
-        assert os.path.exists(path)
-        with open(path, 'r') as f:
-            labels = json.load(f)
-        labels = self._remove_negative_positions(labels)
-        frames = list(labels.keys())
-        frames = [frame for frame in frames if int(frame) > 10]
-        positions = list(labels.values())
-        return frames, positions
 
-    def _downsample_frame(self, frame):  # Specific Helper
-        """
-        downsamples an image from the original 1920x1080 to 320x128
-        """
-        new_frame = cv2.resize(frame, dsize=(320, 128))
-        return new_frame
+class Detect_Ball(Module):
+    def __init__(self, dropout):
+        super(Detect_Ball, self).__init__()
+        self.conv1 = Conv2d(27, 64, kernel_size=1, stride=1, padding=0)
+        self.batch_norm = BatchNorm2d(64)
+        self.relu = ReLU()
+        self.conv_block1 = Conv_Block(in_channels=64, out_channels=64)
+        self.conv_block2 = Conv_Block(in_channels=64, out_channels=64)
+        self.dropout_2d = Dropout2d(p=dropout)
+        self.conv_block3 = Conv_Block(in_channels=64, out_channels=128)
+        self.conv_block4 = Conv_Block(in_channels=128, out_channels=128)
+        self.conv_block5 = Conv_Block(in_channels=128, out_channels=256)
+        self.conv_block6 = Conv_Block(in_channels=256, out_channels=256)
+        self.fc1 = Linear(in_features=2560, out_features=1792)
+        self.fc2 = Linear(in_features=1792, out_features=896)
+        self.fc3 = Linear(in_features=896, out_features=448)
+        self.dropout_1d = Dropout(p=dropout)
+        self.sigmoid = Sigmoid()
 
-    def load_frame_stacks_generator(self, vid_path, frames):  # Top Level
-        """
-        loads a generator of the frame stacks for a given video
-        """
-        cap = cv2.VideoCapture(vid_path)
-        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        # frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        # frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    def forward(self, x):
+        # TODO may want to return more than just the final output!
+        x = self.conv1(x)
+        x = self.batch_norm(x)
+        x = self.relu(x)
+        x = self.conv_block1(x)
+        x = self.conv_block2(x)
+        x = self.dropout_2d(x)
+        x = self.conv_block3(x)
+        x = self.conv_block4(x)
+        x = self.dropout_2d(x)
+        x = self.conv_block5(x)
+        x = self.conv_block6(x)
+        x = self.dropout_2d(x)
+        x = x.contiguous().view(x.size(0), -1)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.dropout_1d(x)
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.dropout_1d(x)
+        x = self.fc3(x)
+        x = self.sigmoid(x)
+        return x
 
-        stack = [cap.read()[1] for i in range(8)]
-        stack = [self._downsample_frame(frame) for frame in stack]
-        for i in range(8, frame_count, 1):
-            _, new_frame = cap.read()
-            new_frame = self._downsample_frame(new_frame)
-            stack.append(new_frame)
-            if str(i) in frames:
-                yield np.concatenate(stack, axis=0)
-            stack = stack[1:]
 
-    # def _conv_block(self):  # Specific Helper
-    #     return [
-    #         keras.layers.Conv2D(64, (1, 1), strides=(1, 1)),
-    #         keras.layers.BatchNormalization(),
-    #         keras.layers.ReLU(),
-    #         keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid')
-    #     ]
+# arr = np.zeros((3, 27, 320, 128))
+tensor = [np.zeros((2, 27, 320, 128)) for i in range(3)]
+labels = [np.zeros((448)) for i in range(3)]
+# labels = np.zeros((3, 448))
+# labels = torch.from_numpy(labels)
 
-    # def create_global_model(self):  # Top Level
-    #     model = keras.Sequential([
-    #         keras.layers.Conv2D(64, (1, 1), strides=(1, 1), input_shape=(1152, 320, 3)),
-    #         keras.layers.BatchNormalization(),
-    #         keras.layers.ReLU(),
-    #         *self._conv_block(),
-    #         *self._conv_block(),
-    #         keras.layers.Dropout(0.5),
-    #         *self._conv_block(),
-    #         *self._conv_block(),
-    #         keras.layers.Dropout(0.5),
-    #         *self._conv_block(),
-    #         *self._conv_block(),
-    #         keras.layers.Dropout(0.5),
-    #         keras.layers.Flatten(),
+data = [(tensor[i], labels[i]) for i in range(len(labels))]
 
-    #         # FC - Relu - Dropout 1
-    #         keras.layers.Dense(2560),
-    #         keras.layers.ReLU(),
-    #         keras.layers.Dropout(0.5),
-    #         # FC - Relu - Dropout 2
-    #         keras.layers.Dense(1792),
-    #         keras.layers.ReLU(),
-    #         keras.layers.Dropout(0.5),
-    #         # FC - Relu - Dropout 3
-    #         keras.layers.Dense(2, activation='sigmoid')
-    #     ])
-    #     model.compile(optimizer='adam', loss='mean_squared_error')
-    #     model.summary()
-    #     return model
 
-    # def create_local_model(self):  # Top Level
-    #     pass
-
-    # def train_local(self, vid_path):  # Run
-    #     # load a video
-    #     # load labels
-    #     # create training set to work with
-    #     # initialize model
-    #     # set up training
-    #     frames, positions = self.load_labels(1, train=False)
-    #     frame_stacks_gen = self.load_frame_stacks_generator(vid_path, frames)
-
-    #     first_stack = next(frame_stacks_gen)
-    #     print(first_stack.shape)
-    #     global_model = self.create_global_model()
-    #     print(global_model.predict(np.expand_dims(first_stack, 0)))
-    #     return frames, positions, frame_stacks_gen, global_model
+def train(data, model):
+    criterion = CrossEntropyLoss()
+    optimizer = SGD(model.parameters(), lr=0.01, momentum=0.9)
+    for epoch in range(10):
+        print(epoch)
+        for i, (inputs, targets) in enumerate(data):
+            print(i)
+            inputs = torch.from_numpy(inputs).float()
+            targets = torch.from_numpy(targets).float()
+            print('here')
+            print(inputs.shape)
+            print(targets.shape)
+            optimizer.zero_grad()
+            yhat = model(inputs)
+            print(yhat.shape)
+            loss = criterion(yhat, targets)
+            loss.backward()
+            optimizer.step()
 
 
 if __name__ == '__main__':
-    x = Detect_Ball_Model()
-    self = x
-    vid_path = x.test_paths[0]
-    frames, positions, frame_stacks_gen, global_model = x.train_local(vid_path)
-    # first_stack = x.train_local(vid_path)
+    model = Detect_Ball(0.5)
+    train(data, model)
+
+    # actually train on some nonsense inputs just so I know I can load data how I want
