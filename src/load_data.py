@@ -4,7 +4,7 @@
 # File Created: Tuesday, 19th January 2021 8:16:12 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Friday, 5th February 2021 2:32:20 pm
+# Last Modified: Sunday, 7th March 2021 10:33:00 am
 # Modified By: Dillon Koch
 # -----
 #
@@ -60,32 +60,46 @@ class Load_Data:
         return arr
 
 
-class Load_Training_Data:
-    def __init__(self):
-        pass
+class Load_Video:
+    """
+    - loads 9 frames at a time from the video (0-8, 1-9, 2-10, ...)
+    - can call next() on this
+    """
 
-    def load_ball_labels(self):  # Top Level
-        """
-        loads the
-        """
-        pass
+    def __init__(self, vid_path):
+        self.vid_path = vid_path
+        self.frame_count = 0
 
-    def load_event_labels(self):
-        pass
+    def load_cap(self):  # Top Level
+        assert os.path.isfile(self.vid_path)
+        cap = cv2.VideoCapture(self.vid_path)
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        print(f'({width}x{height}) at {fps} fps, {num_frames} frames')
+        return cap, num_frames
 
-    def run_ball_detection(self, video_path, labels_path):  # Run
-        """
-        """
-        pass
+    def vid_generator(self, cap, num_frames, resize, sequence_length, rollaxis):  # Top Level
+        count = 0
+        frames = []
+        while count < num_frames:
+            ret, frame = cap.read()
+            frame = cv2.resize(frame, (320, 128)) if resize else frame
+            frame = np.rollaxis(frame, 2, 0) if rollaxis else frame
+            frames.append(frame)
+            if len(frames) == sequence_length:
+                yield np.array(frames)
+                frames = frames[1:]
 
-    def run_event_detection(self, video_path, labels_path):  # Run
-        """
-        """
-        pass
+    def run(self, resize=False, sequence_length=9, rollaxis=True):
+        cap, num_frames = self.load_cap()
+        vid_generator = self.vid_generator(cap, num_frames, resize, sequence_length, rollaxis)
+        return vid_generator
 
 
 if __name__ == '__main__':
-    x = Load_Data()
-    self = x
     vid_path = ROOT_PATH + "/Data/Test/Game1/gameplay.mp4"
-    arr = x.run(vid_path)
+    x = Load_Video(vid_path)
+    self = x
+    vid_generator = x.run()
