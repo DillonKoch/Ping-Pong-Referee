@@ -4,30 +4,27 @@
 # File Created: Saturday, 6th March 2021 6:09:05 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Saturday, 6th March 2021 7:03:04 pm
+# Last Modified: Saturday, 13th March 2021 8:56:42 pm
 # Modified By: Dillon Koch
 # -----
-# Collins Aerospace
 #
 # -----
 # creating models for TTNet
 # ==============================================================================
 
-from os.path import abspath, dirname
 import sys
-import matplotlib.pyplot as plt
-import numpy as np
+from os.path import abspath, dirname
 
-from torch.nn import Module, Conv2d, BatchNorm2d, ReLU, Linear, Sigmoid, Dropout, MaxPool2d, Dropout2d
 import torch
-from torch.nn.modules.loss import CrossEntropyLoss
-from torch.optim import SGD
+import torch.nn as nn
+from torch.nn import (BatchNorm2d, Conv2d, Dropout, Dropout2d, Linear,
+                      MaxPool2d, Module, ReLU, Sigmoid)
 
 ROOT_PATH = dirname(dirname(abspath(__file__)))
 if ROOT_PATH not in sys.path:
     sys.path.append(ROOT_PATH)
 
-from load_data import Load_Video
+from training_dataloader import PingPongDataset
 
 
 class Conv_Block(Module):
@@ -91,14 +88,58 @@ class Detect_Ball(Module):
         return x, features, out_block2, out_block3, out_block4, out_block5
 
 
+class Ball_Detection_Loss(nn.Module):
+    def __init__(self):
+        super(Ball_Detection_Loss, self).__init__()
+        self.epsilon = 1e-9
+
+    def forward(self, pred_ball_position, target_ball_position):
+        x_pred = pred_ball_position[:, :320]
+        y_pred = pred_ball_position[:, 320:]
+
+        x_target = target_ball_position[:, :320]
+        y_target = target_ball_position[:, 320:]
+
+        loss_ball_x = - torch.mean(x_target * torch.log(x_pred + self.epsilon) + (1 - x_target)
+                                   * torch.log(1 - x_pred + self.epsilon))
+        loss_ball_y = - torch.mean(y_target * torch.log(y_pred + self.epsilon) + (1 - y_target)
+                                   * torch.log(1 - y_pred + self.epsilon))
+
+        return loss_ball_x + loss_ball_y
+
+
+def train(model, epochs=100):  # Run
+    dataset = PingPongDataset(limit=None)
+    dataset_len = len(dataset)
+    criterion = Ball_Detection_Loss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    model_path = ROOT_PATH + "/src/ball_detection_global.pth"
+
+    for epoch in range(epochs):
+        for i, (frames, labels) in enumerate(dataset):
+            print(f"epoch {epoch} ({i}/{dataset_len})")
+
+            ball_pred, *_ = model(frames)
+            loss = criterion(ball_pred.float(), labels.float())
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            print(f"Loss: {loss.item()}")
+
+            # finding predicted (x,y)
+            x_pred = torch.argmax(ball_pred[0, :320])
+            x_label = torch.argmax(labels[0, :320])
+            y_pred = torch.argmax(ball_pred[0, 320:])
+            y_label = torch.argmax(labels[0, 320:])
+            print(f"X pred: {x_pred}, X label: {x_label}")
+            print(f"Y pred: {y_pred}, Y label: {y_label}")
+
+            if i % 1 == 0:
+                torch.save(model, model_path)
+                print('model saved!')
+
+
 if __name__ == '__main__':
     ball_global = Detect_Ball()
-    ball_local = Detect_Ball()
-    lv = Load_Video(ROOT_PATH + "/Data/Test/Game1/gameplay.mp4")
-    vid_gen = lv.run(resize=True)
-    arr = next(vid_gen)
-    arr = arr.reshape((1, 27, 128, 320))
-    arr = torch.from_numpy(arr)
-    arr = arr.float()
-    x, features, out_block2, out_block3, out_block4, out_block5 = ball_global(arr)
-    pred_ball_local, local_features, *_ = ball_local(arr)
+    # ball_global = torch.load(model_path)
+    train(ball_global)
