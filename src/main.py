@@ -4,7 +4,7 @@
 # File Created: Friday, 19th March 2021 11:04:27 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Saturday, 20th March 2021 12:53:24 am
+# Last Modified: Saturday, 20th March 2021 12:57:34 am
 # Modified By: Dillon Koch
 # -----
 #
@@ -68,7 +68,21 @@ class Main:
         return chart
 
 
+def parse_args(arg_list=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', help="path to new video")
+    if arg_list is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(arg_list)
+
+    args_dict = vars(args)
+    path = args_dict['path']
+    return path
+
+
 if __name__ == '__main__':
-    x = Main()
+    path = parse_args()
+    x = Main(path)
     self = x
-    x.run()
+    x.run(coffin_corner=True)
