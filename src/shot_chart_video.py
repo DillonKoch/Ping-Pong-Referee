@@ -4,7 +4,7 @@
 # File Created: Sunday, 7th March 2021 9:22:31 am
 # Author: Dillon Koch
 # -----
-# Last Modified: Sunday, 7th March 2021 8:33:58 pm
+# Last Modified: Saturday, 20th March 2021 12:41:08 am
 # Modified By: Dillon Koch
 # -----
 #
@@ -163,14 +163,4 @@ if __name__ == '__main__':
     self = x
 
     game_path = ROOT_PATH + "/Data/Test/Game2/"
-    with open(game_path + "ball_markup.json") as f:
-        ball_dict = json.load(f)
-    with open(game_path + "events_markup.json") as f:
-        event_dict = json.load(f)
-    bounce_dict = {key: val for key, val in event_dict.items() if val == 'bounce'}
-    # vid_corners = [(515, 545), (291, 655), (1284, 573), (1375, 697)] # ! Test Game 1
-    vid_corners = [(556, 518), (363, 633), (1340, 535), (1479, 657)]  # ! Test Game 2
-    gameplay_path = game_path + "gameplay.mp4"
-    chart_only = False
-    coffin_corner = True
-    chart = x.run(ball_dict, bounce_dict, vid_corners, gameplay_path, chart_only, coffin_corner)
+    # chart = x.run(ball_dict, bounce_dict, vid_corners, gameplay_path, chart_only, coffin_corner)

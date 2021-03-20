@@ -4,10 +4,9 @@
 # File Created: Saturday, 6th March 2021 2:04:36 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Saturday, 6th March 2021 3:53:42 pm
+# Last Modified: Friday, 19th March 2021 11:35:46 pm
 # Modified By: Dillon Koch
 # -----
-# Collins Aerospace
 #
 # -----
 # saves off all the frames from the videos used for training

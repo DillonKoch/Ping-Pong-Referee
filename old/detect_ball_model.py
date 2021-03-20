@@ -4,10 +4,9 @@
 # File Created: Monday, 15th February 2021 1:11:12 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Monday, 15th February 2021 3:45:35 pm
+# Last Modified: Friday, 19th March 2021 11:35:15 pm
 # Modified By: Dillon Koch
 # -----
-# Collins Aerospace
 #
 # -----
 # creates the model for detecting the ball location in videos
@@ -121,5 +120,3 @@ def train(data, model):
 if __name__ == '__main__':
     model = Detect_Ball(0.5)
     train(data, model)
-
-    # actually train on some nonsense inputs just so I know I can load data how I want

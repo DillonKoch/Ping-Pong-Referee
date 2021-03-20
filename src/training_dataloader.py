@@ -4,10 +4,9 @@
 # File Created: Saturday, 13th March 2021 9:25:16 am
 # Author: Dillon Koch
 # -----
-# Last Modified: Saturday, 13th March 2021 8:13:29 pm
+# Last Modified: Friday, 19th March 2021 11:35:58 pm
 # Modified By: Dillon Koch
 # -----
-# Collins Aerospace
 #
 # -----
 # loading data to train models

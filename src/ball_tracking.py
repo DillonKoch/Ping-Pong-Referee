@@ -1,15 +1,15 @@
 # ==============================================================================
-# File: models.py
+# File: ball_tracking.py
 # Project: src
-# File Created: Saturday, 6th March 2021 6:09:05 pm
+# File Created: Friday, 19th March 2021 11:06:18 pm
 # Author: Dillon Koch
 # -----
-# Last Modified: Saturday, 13th March 2021 8:56:42 pm
+# Last Modified: Friday, 19th March 2021 11:44:31 pm
 # Modified By: Dillon Koch
 # -----
 #
 # -----
-# creating models for TTNet
+# Training ball tracking models
 # ==============================================================================
 
 import sys
@@ -96,15 +96,12 @@ class Ball_Detection_Loss(nn.Module):
     def forward(self, pred_ball_position, target_ball_position):
         x_pred = pred_ball_position[:, :320]
         y_pred = pred_ball_position[:, 320:]
-
         x_target = target_ball_position[:, :320]
         y_target = target_ball_position[:, 320:]
-
         loss_ball_x = - torch.mean(x_target * torch.log(x_pred + self.epsilon) + (1 - x_target)
                                    * torch.log(1 - x_pred + self.epsilon))
         loss_ball_y = - torch.mean(y_target * torch.log(y_pred + self.epsilon) + (1 - y_target)
                                    * torch.log(1 - y_pred + self.epsilon))
-
         return loss_ball_x + loss_ball_y
 
 
