@@ -4,4 +4,4 @@ Data
 # Files
 *.mp4
 TTNet.pdf
-*.pth
+/src/*.pth
